@@ -3,315 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CQB SQUAD OPS v3.0 - NASA EDITION</title>
+    <title>CQB TACTICAL COMPLETE - NASA OPS</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; color: #0f0; display: flex; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; color: #0f0; }
         
-        /* Sidebar Mission Board */
-        #sidebar { 
-            width: 300px; background: #0a0a0a; border-right: 3px solid #1a1a1a; 
-            display: flex; flex-direction: column; padding: 20px; z-index: 2500;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
-        }
-        .room-card { 
-            border: 1px solid #0f0; padding: 15px; margin-bottom: 12px; cursor: pointer; 
-            background: rgba(0,255,0,0.03); border-radius: 4px; transition: 0.2s;
-        }
-        .room-card:hover { background: #0f0; color: #000; box-shadow: 0 0 10px #0f0; }
-        .room-card b { font-size: 16px; display: block; margin-bottom: 5px; }
+        /* MENU LOBBY UTAMA */
+        #lobby-container { position: fixed; inset: 0; display: flex; z-index: 5000; background: #050505; }
+        #mission-board { width: 350px; background: #080808; border-right: 2px solid #1a1a1a; padding: 25px; display: flex; flex-direction: column; }
+        #host-panel { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #111 0%, #000 100%); }
+        
+        .room-card { border: 1px solid #0f0; padding: 15px; margin-bottom: 15px; cursor: pointer; background: rgba(0,255,0,0.02); border-radius: 4px; }
+        .room-card:hover { background: #0f0; color: #000; box-shadow: 0 0 15px #0f0; }
+        
+        .input-nasa { background: #000; border: 2px solid #0f0; color: #0f0; padding: 15px; width: 280px; text-align: center; font-size: 20px; margin-bottom: 25px; outline: none; }
+        .btn-nasa { padding: 15px 60px; border: 2px solid #0f0; background: transparent; color: #0f0; cursor: pointer; font-weight: bold; font-size: 22px; letter-spacing: 5px; }
+        .btn-nasa:hover { background: #0f0; color: #000; }
 
-        /* Game Container */
-        #stage { flex-grow: 1; position: relative; overflow: hidden; }
-        canvas { display: block; width: 100%; height: 100%; }
-
-        /* UI Overlays */
-        .overlay { 
-            position: absolute; inset: 0; background: rgba(0,0,0,0.96); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; 
-        }
-        .input-box { 
-            background: #000; border: 2px solid #0f0; color: #0f0; padding: 15px; 
-            width: 250px; text-align: center; margin-bottom: 20px; font-family: inherit; font-size: 18px;
-        }
-        .btn-main { 
-            padding: 15px 40px; border: 2px solid #0f0; background: transparent; 
-            color: #0f0; font-weight: bold; cursor: pointer; letter-spacing: 2px;
-        }
-        .btn-main:hover { background: #0f0; color: #000; }
-
-        /* Mobile Controls */
-        #mobile-hud { 
-            position: absolute; bottom: 30px; width: 100%; height: 180px; 
-            pointer-events: none; display: none; z-index: 1000; 
-        }
-        .fire-btn { 
-            position: absolute; right: 50px; bottom: 20px; width: 100px; height: 100px; 
-            background: rgba(255,0,0,0.3); border: 4px solid #f00; border-radius: 50%; 
-            pointer-events: auto; display: flex; align-items: center; justify-content: center; font-weight: bold;
-        }
-
-        #landscape-lock { 
-            position: fixed; inset: 0; background: #000; z-index: 9999; 
-            display: none; flex-direction: column; align-items: center; justify-content: center; 
-        }
-        @media (orientation: portrait) { #landscape-lock { display: flex; } }
-        @media (pointer: coarse) { #mobile-hud { display: block; } }
+        /* GAMEPLAY */
+        #game-ui { position: fixed; top: 20px; left: 20px; z-index: 1000; display: none; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid #0f0; pointer-events: none; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
 
-<div id="landscape-lock">
-    <h1 style="color: #ff0;">🔄 ROTATE DEVICE</h1>
-    <p>Mission requires Landscape Mode</p>
-</div>
-
-<div id="sidebar">
-    <h2 style="text-align: center; color: #0f0; text-shadow: 0 0 5px #0f0;">MISSION BOARD</h2>
-    <p style="font-size: 11px; color: #444; border-bottom: 1px solid #1a1a1a; padding-bottom: 10px;">SCANNING REGION: KEDIRI, ID</p>
-    <div id="room-list" style="margin-top: 20px;"></div>
-    <div style="margin-top: auto; font-size: 11px; color: #333;">
-        PEER STATUS: <span id="p-status">OFFLINE</span><br>
-        UID: <span id="p-id">---</span>
+<div id="lobby-container">
+    <div id="mission-board">
+        <h2 style="text-align: center; letter-spacing: 2px; color: #0f0;">MISSION BOARD</h2>
+        <hr style="border: 0; border-top: 1px solid #1a1a1a; margin-bottom: 20px;">
+        <div id="room-list"></div>
+    </div>
+    <div id="host-panel">
+        <h1 style="font-size: 60px; letter-spacing: 20px; margin-bottom: 10px; text-shadow: 0 0 20px #0f0;">CQB</h1>
+        <p style="color: #444; margin-bottom: 50px;">BANGI TACTICAL RESPONSE UNIT</p>
+        <input type="text" id="player-name" class="input-nasa" placeholder="CALLSIGN" maxlength="12">
+        <button class="btn-nasa" onclick="initHost()">HOST MISSION</button>
     </div>
 </div>
 
-<div id="stage">
-    <div id="lobby" class="overlay">
-        <h1 style="font-size: 40px; margin-bottom: 30px; letter-spacing: 10px;">CQB OPS</h1>
-        <input type="text" id="username" class="input-box" placeholder="CALLSIGN" maxlength="12">
-        <button class="btn-main" onclick="hostMission()">START NEW SQUAD</button>
-        <p style="margin-top: 20px; color: #444; font-size: 12px;">OR SELECT A MISSION FROM THE BOARD</p>
-    </div>
-
-    <div id="mobile-hud">
-        <div class="fire-btn" id="shoot-trigger">FIRE</div>
-    </div>
-    
-    <canvas id="gameCanvas"></canvas>
+<div id="game-ui">
+    SQUAD: <span id="sq-val">1</span> | POS: <span id="pos-val">0,0</span>
 </div>
+
+<canvas id="gameCanvas"></canvas>
 
 <script>
-    // ==========================================
-    // 1. CONFIGURATION (GANTI DISINI)
-    // ==========================================
-    const firebaseConfig = {
-  apiKey: "AIzaSyDntJLnQdUrNEREFvJyuhxKHKWXAs0slTY",
-  authDomain: "cqb-game-multiplayer.firebaseapp.com",
-  databaseURL: "https://cqb-game-multiplayer-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "cqb-game-multiplayer",
-  storageBucket: "cqb-game-multiplayer.firebasestorage.app",
-  messagingSenderId: "532479451292",
-  appId: "1:532479451292:web:a6a81916c950f57c2f0d59"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+// --- FIREBASE CONFIG NASA ---
+const firebaseConfig = {
+    apiKey: "AIzaSyDntJLnQdUrNEREFvJyuhxKHKWXAs0slTY",
+    authDomain: "cqb-game-multiplayer.firebaseapp.com",
+    databaseURL: "https://cqb-game-multiplayer-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "cqb-game-multiplayer",
+    storageBucket: "cqb-game-multiplayer.firebasestorage.app",
+    messagingSenderId: "532479451292",
+    appId: "1:532479451292:web:a6a81916c950f57c2f0d59"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const peer = new Peer();
 
-    // ==========================================
-    // 2. GLOBAL VARIABLES
-    // ==========================================
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const peer = new Peer();
-    
-    let myId, myName, isHost = false, playing = false;
-    let players = {}, bullets = [], connections = [];
-    const TILE = 64;
+let myId, myName, isHost = false, playing = false;
+let players = {}, bullets = [], connections = [];
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-    const map = [
-        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
-        [1,0,1,1,0,1,0,1,1,1,1,0,1,1,1,1,0,1],
-        [1,0,1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,1],
-        [1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1,0,1],
-        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    ];
+// --- WORLD DATA (PERSIS SOLO MISSION) ---
+const TILE = 64;
+const map = [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,2,0,1,1,1,0,1,1,1,0,1],
+    [1,0,1,0,1,0,1,0,0,0,0,0,1,0,1],
+    [1,0,0,0,1,0,2,0,1,1,1,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+let doors = [
+    {r: 2, c: 4, open: false},
+    {r: 4, c: 6, open: false}
+];
 
-    // ==========================================
-    // 3. NETWORK ENGINE (FIREBASE + PEERJS)
-    // ==========================================
-    peer.on('open', id => {
-        myId = id;
-        document.getElementById('p-id').innerText = id.substring(0,8);
-        document.getElementById('p-status').innerText = "ONLINE";
+// --- NETWORK CORE ---
+peer.on('open', id => { myId = id; });
+
+db.ref('rooms').on('value', snap => {
+    const list = document.getElementById('room-list');
+    list.innerHTML = "";
+    const data = snap.val();
+    if(!data) { list.innerHTML = "<p style='color:#222'>Scanning for squads...</p>"; return; }
+    Object.keys(data).forEach(id => {
+        if(id === myId) return;
+        const card = document.createElement('div');
+        card.className = 'room-card';
+        card.innerHTML = `<b>SQUAD: ${data[id].hostName}</b><br><small>STATUS: READY TO BREACH</small>`;
+        card.onclick = () => initJoin(id);
+        list.appendChild(card);
     });
+});
 
-    db.ref('rooms').on('value', snap => {
-        const list = document.getElementById('room-list');
-        list.innerHTML = "";
-        const data = snap.val();
-        if(!data) { list.innerHTML = "<p style='color:#222'>Searching for signal...</p>"; return; }
-        
-        Object.keys(data).forEach(id => {
-            if(id === myId) return;
-            const card = document.createElement('div');
-            card.className = 'room-card';
-            card.innerHTML = `<b>SQUAD: ${data[id].hostName}</b><small>STATUS: ACTIVE</small>`;
-            card.onclick = () => joinMission(id);
-            list.appendChild(card);
-        });
+function initHost() {
+    myName = document.getElementById('player-name').value.toUpperCase() || "OP-1";
+    isHost = true;
+    db.ref('rooms/' + myId).set({ hostName: myName });
+    db.ref('rooms/' + myId).onDisconnect().remove();
+    peer.on('connection', c => { connections.push(c); setupComm(c); });
+    startGame();
+}
+
+function initJoin(hostId) {
+    myName = document.getElementById('player-name').value.toUpperCase() || "GUEST";
+    const c = peer.connect(hostId);
+    connections.push(c);
+    setupComm(c);
+}
+
+function setupComm(c) {
+    c.on('open', () => {
+        startGame();
+        setInterval(() => {
+            if(c.open) c.send({type:'sync', id:myId, name:myName, x:players[myId].x, y:players[myId].y, a:players[myId].a});
+        }, 30);
     });
+    c.on('data', d => {
+        if(d.type === 'sync') players[d.id] = { x:d.x, y:d.y, a:d.a, name:d.name, color: '#d32f2f' };
+        if(d.type === 'fire') bullets.push({x:d.x, y:d.y, a:d.a, s:20});
+        if(d.type === 'door') { doors[d.idx].open = d.state; }
+        if(isHost) connections.forEach(o => { if(o !== c) o.send(d); });
+    });
+}
 
-    function hostMission() {
-        myName = document.getElementById('username').value.toUpperCase() || "OP-1";
-        isHost = true;
-        db.ref('rooms/' + myId).set({ hostName: myName, time: Date.now() });
-        db.ref('rooms/' + myId).onDisconnect().remove();
-        
-        peer.on('connection', c => {
-            connections.push(c);
-            setupDataSync(c);
-        });
-        initGame();
+// --- GAME LOGIC ---
+function startGame() {
+    playing = true;
+    document.getElementById('lobby-container').style.display = 'none';
+    document.getElementById('game-ui').style.display = 'block';
+    players[myId] = { x: 100, y: 100, a: 0, color: isHost ? '#1976d2' : '#d32f2f', name: myName };
+    loop();
+}
+
+const keys = {};
+window.onkeydown = e => { 
+    keys[e.key.toLowerCase()] = true; 
+    if(e.key === 'f') toggleDoor(); 
+};
+window.onkeyup = e => keys[e.key.toLowerCase()] = false;
+
+function isBlocked(x, y) {
+    const r = Math.floor(y / TILE);
+    const c = Math.floor(x / TILE);
+    if(map[r][c] === 1) return true;
+    if(map[r][c] === 2) {
+        const d = doors.find(door => door.r === r && door.c === c);
+        return d ? !d.open : true;
     }
+    return false;
+}
 
-    function joinMission(hostId) {
-        myName = document.getElementById('username').value.toUpperCase() || "OP-GUEST";
-        const c = peer.connect(hostId);
-        connections.push(c);
-        setupDataSync(c);
-    }
-
-    function setupDataSync(c) {
-        c.on('open', () => {
-            initGame();
-            setInterval(() => {
-                if(c.open) c.send({ type:'sync', id:myId, name:myName, data:players[myId] });
-            }, 30);
-        });
-        c.on('data', d => {
-            if(d.type === 'sync') players[d.id] = { ...d.data, name: d.name };
-            if(d.type === 'fire') { bullets.push({x:d.x, y:d.y, a:d.a, s:18, owner:d.id}); playShotgun(); }
-            if(isHost) connections.forEach(other => { if(other !== c) other.send(d); });
-        });
-    }
-
-    // ==========================================
-    // 4. GAME ENGINE (VISUALS & PHYSICS)
-    // ==========================================
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playShotgun() {
-        const n = audioCtx.currentTime;
-        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.type = 'triangle'; o.frequency.setValueAtTime(130, n);
-        o.frequency.exponentialRampToValueAtTime(10, n + 0.1);
-        g.gain.setValueAtTime(0.4, n); g.gain.linearRampToValueAtTime(0, n + 0.1);
-        o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(n + 0.12);
-    }
-
-    function initGame() {
-        playing = true;
-        document.getElementById('lobby').style.display = 'none';
-        players[myId] = { 
-            x: 100, y: 150, a: 0, hp: 100, 
-            color: isHost ? '#1976d2' : '#d32f2f' 
-        };
-        requestAnimationFrame(renderLoop);
-    }
-
-    const keys = {};
-    window.onkeydown = e => keys[e.key.toLowerCase()] = true;
-    window.onkeyup = e => keys[e.key.toLowerCase()] = false;
-
-    function renderLoop() {
-        if(!playing) return;
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-
-        const me = players[myId];
-        let dx=0, dy=0;
-        if(keys['w']) dy-=4; if(keys['s']) dy+=4;
-        if(keys['a']) dx-=4; if(keys['d']) dx+=4;
-
-        if(dx!==0 || dy!==0) {
-            if(!isWall(me.x + dx, me.y)) me.x += dx;
-            if(!isWall(me.x, me.y + dy)) me.y += dy;
-            me.a = Math.atan2(dy, dx);
-        } else if(!('ontouchstart' in window)) {
-            // Mouse Angle
-            window.onmousemove = e => {
-                const rect = canvas.getBoundingClientRect();
-                me.a = Math.atan2(e.clientY - me.y, (e.clientX - rect.left) - me.x);
-            };
-            window.onmousedown = fire;
+function toggleDoor() {
+    const me = players[myId];
+    doors.forEach((d, idx) => {
+        const dx = (d.c * TILE + TILE/2) - me.x;
+        const dy = (d.r * TILE + TILE/2) - me.y;
+        if(Math.sqrt(dx*dx + dy*dy) < 80) {
+            d.open = !d.open;
+            connections.forEach(c => c.send({type:'door', idx: idx, state: d.open}));
         }
+    });
+}
 
-        // --- DRAWING ---
-        ctx.fillStyle = '#050505'; ctx.fillRect(0,0,canvas.width,canvas.height);
-        
-        // Walls
-        for(let r=0; r<map.length; r++){
-            for(let c=0; c<map[r].length; c++){
-                if(map[r][c]===1){
-                    ctx.fillStyle = '#111'; ctx.fillRect(c*TILE, r*TILE, TILE, TILE);
-                    ctx.strokeStyle = '#222'; ctx.strokeRect(c*TILE, r*TILE, TILE, TILE);
-                }
+function loop() {
+    if(!playing) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const me = players[myId];
+
+    // Movement & Collision
+    let nx = me.x, ny = me.y;
+    if(keys['w']) ny -= 4; if(keys['s']) ny += 4;
+    if(keys['a']) nx -= 4; if(keys['d']) nx += 4;
+    if(!isBlocked(nx, me.y)) me.x = nx;
+    if(!isBlocked(me.x, ny)) me.y = ny;
+
+    // Aiming
+    window.onmousemove = e => { me.a = Math.atan2(e.clientY - me.y, e.clientX - me.x); };
+
+    // --- DRAWING ---
+    ctx.fillStyle = '#050505'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Render Map & Doors
+    for(let r=0; r<map.length; r++) {
+        for(let c=0; c<map[r].length; c++) {
+            if(map[r][c] === 1) {
+                ctx.fillStyle = '#1a1a1a'; ctx.fillRect(c*TILE, r*TILE, TILE, TILE);
+                ctx.strokeStyle = '#0f0'; ctx.lineWidth = 0.5; ctx.strokeRect(c*TILE, r*TILE, TILE, TILE);
+            }
+            if(map[r][c] === 2) {
+                const d = doors.find(door => door.r === r && door.c === c);
+                ctx.fillStyle = d.open ? '#040' : '#400';
+                ctx.fillRect(c*TILE + 10, r*TILE + 10, TILE-20, TILE-20);
+                ctx.fillStyle = '#fff'; ctx.font = '10px Arial';
+                ctx.fillText(d.open ? "OPEN" : "F:DOOR", c*TILE+15, r*TILE+35);
             }
         }
-
-        // Players (Humanoid Detail)
-        Object.keys(players).forEach(id => {
-            const p = players[id];
-            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
-            // Arms
-            ctx.fillStyle = p.color;
-            ctx.beginPath(); ctx.ellipse(-12,-10, 8, 16, Math.PI/4, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(12, 10, 8, 16, -Math.PI/4, 0, Math.PI*2); ctx.fill();
-            // Body
-            ctx.fillStyle = '#111';
-            ctx.beginPath(); ctx.ellipse(0,0, 16, 24, 0, 0, Math.PI*2); ctx.fill();
-            // Head & Visor
-            ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(0,0, 12, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = (id === myId) ? '#0ff' : '#f00'; ctx.fillRect(-7,-6, 14, 3);
-            // Weapon
-            ctx.fillStyle = '#000'; ctx.fillRect(12,-4, 25, 8);
-            ctx.restore();
-            
-            // Name Tag
-            ctx.fillStyle = '#fff'; ctx.font = '12px Courier';
-            ctx.fillText(p.name || "UNKN", p.x - 15, p.y - 40);
-        });
-
-        // Flashlight Engine
-        const off = document.createElement('canvas'); off.width = canvas.width; off.height = canvas.height;
-        const octx = off.getContext('2d'); octx.fillStyle = 'rgba(0,0,0,0.98)'; octx.fillRect(0,0,canvas.width,canvas.height);
-        octx.globalCompositeOperation = 'destination-out';
-        
-        const grad = octx.createRadialGradient(me.x, me.y, 0, me.x, me.y, 400);
-        grad.addColorStop(0, 'white'); grad.addColorStop(1, 'transparent');
-        octx.fillStyle = grad; octx.beginPath(); octx.moveTo(me.x, me.y);
-        octx.arc(me.x, me.y, 500, me.a - 0.7, me.a + 0.7); octx.fill();
-        ctx.drawImage(off, 0, 0);
-
-        // Bullets
-        ctx.fillStyle = '#ff0';
-        bullets.forEach((b,i) => {
-            b.x += Math.cos(b.a)*b.s; b.y += Math.sin(b.a)*b.s;
-            ctx.fillRect(b.x-2, b.y-2, 5, 5);
-            if(isWall(b.x, b.y)) bullets.splice(i,1);
-        });
-
-        requestAnimationFrame(renderLoop);
     }
 
-    function isWall(x,y) {
-        const gx = Math.floor(x/TILE), gy = Math.floor(y/TILE);
-        return !map[gy] || map[gy][gx] === 1;
-    }
+    // Render Players (Humanoid Detail)
+    Object.keys(players).forEach(id => {
+        const p = players[id];
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.ellipse(-12,-12, 8, 15, Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(12, 12, 8, 15, -Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#111'; ctx.beginPath(); ctx.ellipse(0,0, 15, 22, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(0,0, 10, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = (id === myId) ? '#0ff' : '#f00'; ctx.fillRect(-6,-5, 12, 2);
+        ctx.fillStyle = '#000'; ctx.fillRect(10,-3, 25, 6); // Rifle
+        ctx.restore();
+        ctx.fillStyle = '#fff'; ctx.fillText(p.name, p.x-20, p.y-40);
+    });
 
-    function fire() {
-        if(!playing) return;
-        const p = players[myId];
-        bullets.push({x:p.x, y:p.y, a:p.a, s:18, owner:myId});
-        playShotgun();
-        connections.forEach(c => c.send({ type:'fire', x:p.x, y:p.y, a:p.a, id:myId }));
-    }
+    // Flashlight (Solo Mission Style)
+    const off = document.createElement('canvas'); off.width = canvas.width; off.height = canvas.height;
+    const octx = off.getContext('2d'); octx.fillStyle = 'rgba(0,0,0,0.98)'; octx.fillRect(0,0,canvas.width,canvas.height);
+    octx.globalCompositeOperation = 'destination-out';
+    const grad = octx.createRadialGradient(me.x, me.y, 0, me.x, me.y, 450);
+    grad.addColorStop(0, 'white'); grad.addColorStop(1, 'transparent');
+    octx.fillStyle = grad; octx.beginPath(); octx.moveTo(me.x, me.y);
+    octx.arc(me.x, me.y, 550, me.a-0.7, me.a+0.7); octx.fill();
+    ctx.drawImage(off, 0, 0);
 
-    document.getElementById('shoot-trigger').ontouchstart = e => { e.preventDefault(); fire(); };
+    // Bullets
+    ctx.fillStyle = '#ff0';
+    bullets.forEach((b,i) => {
+        b.x += Math.cos(b.a)*b.s; b.y += Math.sin(b.a)*b.s;
+        ctx.fillRect(b.x, b.y, 3, 3);
+        if(isBlocked(b.x, b.y)) bullets.splice(i,1);
+    });
+
+    document.getElementById('pos-val').innerText = `${Math.round(me.x)},${Math.round(me.y)}`;
+    document.getElementById('sq-val').innerText = Object.keys(players).length;
+    requestAnimationFrame(loop);
+}
+
+window.onmousedown = () => {
+    if(!playing) return;
+    bullets.push({x:players[myId].x, y:players[myId].y, a:players[myId].a, s:20});
+    connections.forEach(c => c.send({type:'fire', x:players[myId].x, y:players[myId].y, a:players[myId].a}));
+};
 </script>
 </body>
 </html>
