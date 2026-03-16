@@ -1,0 +1,71 @@
+name: CI/CD Bakso Bangi
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Wajib ditambahkan agar GitHub Actions diizinkan mengunggah file ke GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # --- TAMBAHKAN DUA BARIS DI BAWAH INI ---
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.' 
+
+      - name: Deploy to GitHub Pages
+        id: deployment # ID ini penting untuk mengisi URL di atas
+        uses: actions/deploy-pages@v4
+
+      # --- BAGIAN NOTIFIKASI TELEGRAM ---
+      - name: Notifikasi Telegram - BERHASIL 🚀
+        if: success()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            ✅ **Build Berhasil, Nasa!**
+            
+            Website **CQB-game-multiplayer** di repo `${{ github.repository }}` sudah berhasil diperbarui tanpa kendala.
+            
+            🔗 [Lihat Website](https://hastagaming.github.io/CQB-game/)
+            👤 **Pushed by:** ${{ github.actor }}
+
+      - name: Notifikasi Telegram - GAGAL ❌
+        if: failure()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            ⚠️ **Waduh Nasa, Build GAGAL!**
+            
+            Ada masalah saat proses deploy website **CQB-game-multiplayer**.
+            ❌ **Status:** Failed
+            🛠 **Cek Error di Sini:** https://github.com/${{ github.repository }}/actions
+            
+            Segera diperiksa ya, semangat!
