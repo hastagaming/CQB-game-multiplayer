@@ -3,60 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CQB MULTIPLAYER - Bangi Ops v1.1</title>
+    <title>CQB Squad Ops - Bangi Edition v1.5</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; color: #0f0; touch-action: none; user-select: none; }
         canvas { display: block; }
         
-        /* Force Landscape Overlay */
-        #landscape-lock { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #000; z-index: 9999; display: none; 
-            flex-direction: column; align-items: center; justify-content: center; 
-        }
-        @media (orientation: portrait) { #landscape-lock { display: flex; } }
+        /* Landscape Lock */
+        #landscape-msg { position: fixed; top:0; left:0; width:100%; height:100%; background:#000; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        @media (orientation: portrait) { #landscape-msg { display: flex; } }
 
-        .overlay { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; background: rgba(0,0,0,0.9); }
-        .menu-btn { width: 260px; padding: 15px; margin: 10px; border: 2px solid #0f0; background: rgba(0,20,0,0.5); color: #0f0; font-weight: bold; cursor: pointer; text-align: center; border-radius: 4px; transition: 0.3s; }
+        .overlay { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; background: rgba(0,0,0,0.95); }
+        .menu-btn { width: 250px; padding: 15px; margin: 8px; border: 2px solid #0f0; background: rgba(0,20,0,0.5); color: #0f0; font-weight: bold; cursor: pointer; text-align: center; border-radius: 4px; transition: 0.3s; }
         .menu-btn:hover { background: #0f0; color: #000; box-shadow: 0 0 15px #0f0; }
-        input { background: #111; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 240px; margin: 5px; text-align: center; font-family: monospace; }
+        input { background: #111; border: 1px solid #0f0; color: #0f0; padding: 12px; width: 230px; margin: 10px; text-align: center; font-family: monospace; }
         
-        #status-bar { position: absolute; top: 10px; left: 10px; z-index: 1000; font-size: 12px; background: rgba(0,0,0,0.5); padding: 5px; border-left: 3px solid #0f0; }
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 1000; background: rgba(0,0,0,0.7); padding: 10px; border: 1px solid #0f0; border-radius: 5px; pointer-events: none; display: none; font-size: 14px; }
         
-        /* Mobile Controls */
-        #mobile-controls { position: absolute; bottom: 20px; width: 100%; height: 180px; display: none; z-index: 1000; pointer-events: none; }
-        .joy-area { position: absolute; left: 40px; bottom: 20px; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border: 2px solid #fff; border-radius: 50%; pointer-events: auto; }
-        .btn-fire { position: absolute; right: 40px; bottom: 40px; width: 90px; height: 90px; background: rgba(255,0,0,0.3); border: 3px solid #f00; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; pointer-events: auto; }
+        #mobile-ui { position: absolute; bottom: 20px; width: 100%; height: 200px; display: none; z-index: 1000; pointer-events: none; }
+        .dpad { position: absolute; left: 30px; bottom: 20px; width: 150px; height: 150px; pointer-events: auto; }
+        .d-btn { position: absolute; width: 48px; height: 48px; background: rgba(255,255,255,0.1); border: 2px solid #fff; display: flex; align-items: center; justify-content: center; color: white; border-radius: 8px; font-weight: bold; }
+        #up { left: 51px; top: 0; } #down { left: 51px; bottom: 0; } #left { left: 0; top: 51px; } #right { right: 0; top: 51px; }
+        .btn-fire { position: absolute; right: 30px; bottom: 20px; width: 100px; height: 100px; background: rgba(255,0,0,0.4); border: 3px solid #f00; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; pointer-events: auto; }
         
-        @media (pointer: coarse) { #mobile-controls { display: block; } }
+        @media (pointer: coarse) { #mobile-ui { display: block; } }
     </style>
 </head>
 <body>
 
-    <div id="landscape-lock">
-        <h2 style="color: #ff0;">🔄 ROTATE DEVICE</h2>
-        <p>Gunakan mode Landscape untuk bermain</p>
-    </div>
-
-    <div id="status-bar">UPLINK: DISCONNECTED</div>
+    <div id="landscape-msg"><h1>🔄 ROTATE TO LANDSCAPE</h1></div>
 
     <div id="lobby" class="overlay">
-        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px #0f0;">CQB MULTIPLAYER</h1>
-        <div id="host-ui">
-            <div class="menu-btn" onclick="startHost()">HOST MISSION</div>
-            <p id="display-id" style="color: #ff0; font-size: 12px;"></p>
+        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px #0f0;">CQB: SQUAD OPS</h1>
+        <p id="peer-status">INITIALIZING SYSTEM...</p>
+        <div id="host-controls">
+            <div class="menu-btn" onclick="setupHost()">HOST MISSION (SERVER)</div>
+            <p id="my-id-display" style="color: #ff0; font-size: 12px;"></p>
         </div>
-        <div style="height: 1px; width: 200px; background: #333; margin: 15px;"></div>
-        <div id="join-ui">
-            <input type="text" id="input-id" placeholder="PASTE HOST ID HERE">
-            <div class="menu-btn" onclick="startJoin()">JOIN MISSION</div>
+        <div style="margin: 10px; color: #444;">— OR —</div>
+        <div id="join-controls">
+            <input type="text" id="join-id-input" placeholder="ENTER HOST ID">
+            <div class="menu-btn" onclick="setupJoin()">JOIN SQUAD</div>
         </div>
     </div>
 
-    <div id="mobile-controls">
-        <div class="joy-area" id="stick"></div>
-        <div class="btn-fire" id="btn-shoot">FIRE</div>
+    <div id="hud">
+        HP: <span id="hp-val">100</span> | SQUAD: <span id="squad-count">1</span>
+    </div>
+
+    <div id="mobile-ui">
+        <div class="dpad">
+            <div id="up" class="d-btn">▲</div><div id="left" class="d-btn">◀</div>
+            <div id="right" class="d-btn">▶</div><div id="down" class="d-btn">▼</div>
+        </div>
+        <div class="btn-fire" id="fire-btn">FIRE</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -64,172 +64,229 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const statusEl = document.getElementById('status-bar');
         const TILE = 64;
-
-        let peer, conn;
+        
+        let peer, connections = [];
         let myId = "";
-        let players = {}; 
-        let bullets = [];
+        let isHost = false;
         let playing = false;
+        let players = {}; // { id: {x, y, angle, hp, color} }
+        let bullets = [];
+        let moveState = { up:false, down:false, left:false, right:false };
 
-        // Map: 1=Wall, 5=Med Station (Heal)
-        const map = [
+        const world = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,1,0,0,0,0,0,5,1],
-            [1,0,1,1,0,0,0,0,0,0,0,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,0,1,0,1,0,0,1,1,0,1],
             [1,0,0,0,0,0,1,0,1,0,0,0,0,0,1],
-            [1,5,1,1,0,0,1,1,1,0,0,1,1,0,1],
+            [1,0,1,1,0,0,0,0,0,0,0,1,1,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
-        // Audio System
+        // --- AUDIO (Same as Solo) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function sfxShoot() {
-            const n = audioCtx.currentTime;
+        function playShotgun() {
+            const now = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(150, n);
-            osc.frequency.exponentialRampToValueAtTime(10, n + 0.1);
-            g.gain.setValueAtTime(0.2, n); g.gain.linearRampToValueAtTime(0, n + 0.1);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(n + 0.1);
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(120, now);
+            osc.frequency.exponentialRampToValueAtTime(10, now + 0.12);
+            gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(now + 0.15);
         }
 
-        // PeerJS Setup
+        // --- NETWORK LOGIC ---
         peer = new Peer();
-        peer.on('open', id => { myId = id; statusEl.innerText = "UPLINK: READY"; });
+        peer.on('open', id => {
+            myId = id;
+            document.getElementById('peer-status').innerText = "SYSTEM READY";
+        });
 
-        function startHost() {
-            document.getElementById('display-id').innerText = "ID: " + myId;
-            statusEl.innerText = "UPLINK: WAITING FOR PARTNER...";
-            peer.on('connection', c => { conn = c; setupLink(); });
-        }
-
-        function startJoin() {
-            const tid = document.getElementById('input-id').value;
-            if(!tid) return;
-            conn = peer.connect(tid);
-            setupLink();
-        }
-
-        function setupLink() {
-            conn.on('open', () => {
-                document.getElementById('lobby').style.display = 'none';
-                playing = true;
-                statusEl.innerText = "UPLINK: ENCRYPTED CONNECTION";
-                players[myId] = { x: 128, y: 128, angle: 0, hp: 100 };
-                
-                setInterval(() => {
-                    if(conn.open) conn.send({ type: 'move', id: myId, data: players[myId] });
-                }, 30);
+        function setupHost() {
+            isHost = true;
+            document.getElementById('my-id-display').innerText = "ID: " + myId;
+            document.getElementById('peer-status').innerText = "WAITING FOR SQUAD...";
+            peer.on('connection', conn => {
+                connections.push(conn);
+                handleComm(conn);
+                if(connections.length >= 3) document.getElementById('host-controls').style.display = 'none';
             });
+            startGame();
+        }
 
-            conn.on('data', d => {
-                if(d.type === 'move') players[d.id] = d.data;
-                if(d.type === 'fire') {
-                    bullets.push({x: d.x, y: d.y, angle: d.angle, s: 15, owner: d.id});
-                    sfxShoot();
+        function setupJoin() {
+            const hostId = document.getElementById('join-id-input').value;
+            if(!hostId) return;
+            const conn = peer.connect(hostId);
+            connections.push(conn);
+            handleComm(conn);
+        }
+
+        function handleComm(conn) {
+            conn.on('open', () => {
+                startGame();
+                if(!isHost) document.getElementById('peer-status').innerText = "CONNECTED TO HOST";
+            });
+            conn.on('data', data => {
+                if(data.type === 'init') players = data.players;
+                if(data.type === 'sync') players = data.players;
+                if(data.type === 'shot') {
+                    bullets.push({x: data.x, y: data.y, angle: data.angle, s: 18, owner: data.id});
+                    playShotgun();
+                }
+                // Host relays data to everyone
+                if(isHost) {
+                    connections.forEach(c => { if(c !== conn) c.send(data); });
                 }
             });
         }
 
-        // Input
-        const keys = {};
-        window.onkeydown = e => keys[e.key.toLowerCase()] = true;
-        window.onkeyup = e => keys[e.key.toLowerCase()] = false;
-        
-        let touch = { active: false, x: 0, y: 0 };
-        const stick = document.getElementById('stick');
-        stick.addEventListener('touchstart', () => touch.active = true);
-        stick.addEventListener('touchmove', e => {
-            const t = e.touches[0];
-            const r = stick.getBoundingClientRect();
-            touch.x = (t.clientX - (r.left + r.width/2)) / 40;
-            touch.y = (t.clientY - (r.top + r.height/2)) / 40;
-        });
-        stick.addEventListener('touchend', () => { touch.active = false; touch.x = 0; touch.y = 0; });
-        document.getElementById('btn-shoot').addEventListener('touchstart', e => { e.preventDefault(); doFire(); });
+        function startGame() {
+            playing = true;
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('hud').style.display = 'block';
+            players[myId] = { x: 128, y: 128, angle: 0, hp: 100, color: isHost ? '#1976d2' : '#d32f2f' };
+            resize();
+            
+            setInterval(() => {
+                if(playing) {
+                    connections.forEach(c => {
+                        c.send({ type: 'sync', players: players });
+                    });
+                }
+            }, 30);
+        }
 
-        function doFire() {
+        // --- INPUTS ---
+        const keys = {};
+        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+        window.addEventListener('resize', resize);
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+        function setupBtn(id, dir) {
+            const el = document.getElementById(id);
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); moveState[dir] = true; });
+            el.addEventListener('touchend', (e) => { e.preventDefault(); moveState[dir] = false; });
+        }
+        ['up','down','left','right'].forEach(d => setupBtn(d, d));
+        document.getElementById('fire-btn').addEventListener('touchstart', e => { e.preventDefault(); shoot(); });
+
+        function shoot() {
             if(!playing) return;
             const p = players[myId];
-            bullets.push({x: p.x, y: p.y, angle: p.angle, s: 15, owner: myId});
-            sfxShoot();
-            if(conn && conn.open) conn.send({ type: 'fire', id: myId, x: p.x, y: p.y, angle: p.angle });
+            const shotData = { type: 'shot', id: myId, x: p.x, y: p.y, angle: p.angle };
+            bullets.push({x: p.x, y: p.y, angle: p.angle, s: 18, owner: myId});
+            playShotgun();
+            connections.forEach(c => c.send(shotData));
         }
 
         function update() {
             if(!playing) return;
             const p = players[myId];
             let dx = 0, dy = 0;
+            if(keys['w'] || moveState.up) dy -= 4;
+            if(keys['s'] || moveState.down) dy += 4;
+            if(keys['a'] || moveState.left) dx -= 4;
+            if(keys['d'] || moveState.right) dx += 4;
 
-            if(keys['w']) dy -= 4; if(keys['s']) dy += 4;
-            if(keys['a']) dx -= 4; if(keys['d']) dx += 4;
-            
-            if(touch.active) {
-                dx = touch.x * 5; dy = touch.y * 5;
-                p.angle = Math.atan2(dy, dx);
+            if('ontouchstart' in window) {
+                if(dx !== 0 || dy !== 0) p.angle = Math.atan2(dy, dx);
             } else {
                 window.onmousemove = e => p.angle = Math.atan2(e.clientY - p.y, e.clientX - p.x);
-                window.onmousedown = () => doFire();
+                window.onmousedown = () => shoot();
             }
 
-            const nx = p.x + dx, ny = p.y + dy;
-            const gx = Math.floor(nx/TILE), gy = Math.floor(ny/TILE);
-            
-            if(map[gy] && map[gy][gx] !== 1) {
-                p.x = nx; p.y = ny;
-                // Heal at Med Station
-                if(map[gy][gx] === 5 && p.hp < 100) p.hp += 0.2;
-            }
+            if(!hitWall(p.x + dx, p.y)) p.x += dx;
+            if(!hitWall(p.x, p.y + dy)) p.y += dy;
 
             bullets.forEach((b, i) => {
                 b.x += Math.cos(b.angle) * b.s;
                 b.y += Math.sin(b.angle) * b.s;
-                const bgx = Math.floor(b.x/TILE), bgy = Math.floor(b.y/TILE);
-                if(map[bgy] && map[bgy][bgx] === 1) bullets.splice(i, 1);
+                if(hitWall(b.x, b.y)) bullets.splice(i, 1);
                 
                 Object.keys(players).forEach(id => {
                     if(id !== b.owner) {
                         const target = players[id];
-                        if(Math.hypot(target.x - b.x, target.y - b.y) < 20) {
+                        if(Math.hypot(target.x - b.x, target.y - b.y) < 25) {
                             bullets.splice(i, 1);
-                            if(id === myId) p.hp -= 5;
+                            if(id === myId) p.hp -= 10;
                         }
                     }
                 });
             });
-            if(p.hp <= 0) { p.x = 128; p.y = 128; p.hp = 100; }
+
+            if(p.hp <= 0) { p.hp = 100; p.x = 128; p.y = 128; }
+            document.getElementById('hp-val').innerText = p.hp;
+            document.getElementById('squad-count').innerText = Object.keys(players).length;
+        }
+
+        function hitWall(nx, ny) {
+            const gx = Math.floor(nx/TILE), gy = Math.floor(ny/TILE);
+            return !world[gy] || world[gy][gx] === 1;
+        }
+
+        // --- RENDERING (Same Detail as Solo) ---
+        function drawHumanoid(x, y, angle, col, isMe) {
+            ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+            // Arms
+            ctx.fillStyle = col;
+            ctx.beginPath(); ctx.ellipse(-12, -8, 8, 16, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(12, 10, 8, 14, -Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+            // Body
+            ctx.fillStyle = '#111';
+            ctx.beginPath(); ctx.ellipse(0, 0, 15, 22, 0, 0, Math.PI * 2); ctx.fill();
+            // Head
+            ctx.fillStyle = '#222';
+            ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill();
+            // Eyes/Visor
+            ctx.fillStyle = isMe ? '#0ff' : '#f00';
+            ctx.fillRect(-6, -6, 12, 3);
+            // Weapon
+            ctx.fillStyle = '#000'; ctx.fillRect(10, -5, 25, 6);
+            ctx.restore();
         }
 
         function draw() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            if(!playing) return;
             ctx.fillStyle = '#050505'; ctx.fillRect(0,0,canvas.width,canvas.height);
             
-            for(let r=0; r<map.length; r++) {
-                for(let c=0; c<map[r].length; c++) {
-                    if(map[r][c] === 1) { ctx.fillStyle = '#1a1a1a'; ctx.fillRect(c*TILE, r*TILE, TILE, TILE); }
-                    if(map[r][c] === 5) { ctx.fillStyle = '#030'; ctx.fillRect(c*TILE, r*TILE, TILE, TILE); ctx.fillStyle = '#0f0'; ctx.fillText("+", c*TILE+25, r*TILE+40); }
+            // Map
+            for(let r=0; r<world.length; r++) {
+                for(let c=0; c<world[r].length; c++) {
+                    if(world[r][c] === 1) { ctx.fillStyle = '#1a1a1a'; ctx.fillRect(c*TILE, r*TILE, TILE, TILE); }
                 }
             }
 
+            // Players
             Object.keys(players).forEach(id => {
                 const p = players[id];
-                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
-                ctx.fillStyle = id === myId ? '#1976d2' : '#d32f2f';
-                ctx.beginPath(); ctx.ellipse(0, 0, 15, 20, 0, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#000'; ctx.fillRect(10, -2, 15, 4);
-                ctx.restore();
-                ctx.fillStyle = '#fff'; ctx.font = '12px Arial';
-                ctx.fillText(id === myId ? "YOU" : "TANGO", p.x - 15, p.y - 35);
-                ctx.fillStyle = '#f00'; ctx.fillRect(p.x-20, p.y-30, 40, 4);
-                ctx.fillStyle = '#0f0'; ctx.fillRect(p.x-20, p.y-30, (p.hp/100)*40, 4);
+                drawHumanoid(p.x, p.y, p.angle, p.color, id === myId);
             });
 
+            // Lighting (Flashlight Effect)
+            const p = players[myId];
+            const off = document.createElement('canvas'); off.width = canvas.width; off.height = canvas.height;
+            const octx = off.getContext('2d');
+            octx.fillStyle = 'rgba(0,0,0,0.97)'; octx.fillRect(0,0,canvas.width,canvas.height);
+            octx.globalCompositeOperation = 'destination-out';
+            
+            const grad = octx.createRadialGradient(p.x, p.y, 10, p.x, p.y, 350);
+            grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+            octx.fillStyle = grad; octx.beginPath(); octx.moveTo(p.x, p.y);
+            octx.arc(p.x, p.y, 400, p.angle - 0.7, p.angle + 0.7); octx.fill();
+            
+            const ambient = octx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 80);
+            ambient.addColorStop(0, 'rgba(255,255,255,1)'); ambient.addColorStop(1, 'rgba(255,255,255,0)');
+            octx.fillStyle = ambient; octx.beginPath(); octx.arc(p.x, p.y, 80, 0, Math.PI*2); octx.fill();
+            
+            ctx.drawImage(off, 0, 0);
+
+            // Bullets
             ctx.fillStyle = '#ff0';
-            bullets.forEach(b => ctx.fillRect(b.x-2, b.y-2, 4, 4));
+            bullets.forEach(b => ctx.fillRect(b.x-2, b.y-2, 5, 5));
         }
 
         function loop() { update(); draw(); requestAnimationFrame(loop); }
@@ -237,4 +294,3 @@
     </script>
 </body>
 </html>
-
