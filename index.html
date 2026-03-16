@@ -3,46 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CQB Tactical - True Bangi Multiplayer v3.0</title>
+    <title>CQB Tactical - Bangi Edition v3.5 Full</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; touch-action: none; color: #0f0; user-select: none; display: flex; }
-        
-        /* SIDEBAR LOBBY (MULTIPLAYER) */
+
+        /* SIDEBAR LOBBY */
         #sidebar { width: 320px; background: #080808; border-right: 2px solid #1a1a1a; display: none; flex-direction: column; padding: 25px; z-index: 2500; }
         .room-card { border: 1px solid #0f0; padding: 15px; margin-bottom: 15px; cursor: pointer; background: rgba(0,255,0,0.02); transition: 0.2s; border-radius: 2px; }
         .room-card:hover { background: #0f0; color: #000; box-shadow: 0 0 15px #0f0; }
 
         #stage { flex-grow: 1; position: relative; background: #000; }
         canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
-        
+
         #landscape-msg { position: fixed; inset:0; background:#000; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; background: rgba(0,0,0,0.95); }
         .menu-btn { width: 250px; padding: 15px; margin: 8px; border: 2px solid #0f0; background: rgba(0,20,0,0.5); color: #0f0; font-weight: bold; cursor: pointer; text-align: center; border-radius: 4px; transition: 0.3s; letter-spacing: 2px; }
         .menu-btn:hover { background: #0f0; color: #000; box-shadow: 0 0 15px #0f0; }
-        
+
         .input-box { background: #000; border: 2px solid #0f0; color: #0f0; padding: 15px; width: 250px; text-align: center; margin-bottom: 20px; font-size: 18px; outline: none; }
 
         #game-hud { position: absolute; top: 20px; left: 20px; display: none; pointer-events: none; z-index: 500; font-size: 14px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 5px; border: 1px solid #0f0; box-shadow: 0 0 10px #0f0; }
         
-        /* MOBILE UI (D-PAD V2.3.2) */
+        /* TOMBOL KELUAR */
+        #quit-btn { position: absolute; top: 20px; right: 20px; display: none; padding: 10px 20px; background: rgba(255,0,0,0.2); border: 2px solid #f00; color: #f00; cursor: pointer; z-index: 2500; font-weight: bold; font-size: 12px; }
+
+        /* MOBILE UI */
         #mobile-ui { position: absolute; bottom: 20px; width: 100%; height: 200px; display: none; pointer-events: none; z-index: 1000; }
         .dpad { position: absolute; left: 30px; bottom: 20px; width: 150px; height: 150px; pointer-events: auto; }
         .d-btn { position: absolute; width: 48px; height: 48px; background: rgba(255,255,255,0.1); border: 2px solid #0f0; display: flex; align-items: center; justify-content: center; color: #0f0; border-radius: 8px; font-weight: bold; font-size: 20px;}
-        .d-btn:active { background: rgba(0,255,0,0.5); color: #000; }
         #up { left: 51px; top: 0; } #down { left: 51px; bottom: 0; } #left { left: 0; top: 51px; } #right { right: 0; top: 51px; }
-        
+
         .action-area { position: absolute; right: 30px; bottom: 20px; pointer-events: auto; display: flex; flex-direction: row; gap: 15px; align-items: flex-end; }
         .btn-circle { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #fff; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; text-shadow: 1px 1px 2px #000; cursor: pointer; }
         #fire-btn { background: rgba(255,0,0,0.3); width: 90px; height: 90px; font-size: 16px; border-color: #f00;}
-        #fire-btn:active { background: rgba(255,0,0,0.8); }
         #grenade-btn { background: rgba(255,165,0,0.3); border-color: orange;}
-        #grenade-btn:active { background: rgba(255,165,0,0.8); }
         #door-btn { background: rgba(0,255,0,0.3); border-color: #0f0; display: none; }
-        #door-btn:active { background: rgba(0,255,0,0.8); }
 
         @media (pointer: coarse) { #mobile-ui { display: block; } }
         @media (orientation: portrait) { #landscape-msg { display: flex; } }
@@ -61,7 +60,7 @@
     <div id="stage">
         <div id="main-menu" class="overlay">
             <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px #0f0; font-size: 40px;">CQB: BANGI OPS</h1>
-            <p style="margin-bottom: 30px; color: #888;">Multiplayer Tactical Edition v3.0</p>
+            <p style="margin-bottom: 30px; color: #888;">Multiplayer Tactical Edition v3.5</p>
             <div class="menu-btn" onclick="startSolo()">SOLO MISSION</div>
             <div class="menu-btn" onclick="openMultiplayerLobby()">MULTIPLAYER</div>
         </div>
@@ -82,6 +81,8 @@
             <h2 style="color: #f00;">KIA</h2>
             <div class="menu-btn" onclick="location.reload()">RETRY MISSION</div>
         </div>
+
+        <div id="quit-btn" onclick="location.reload()">QUIT MISSION</div>
 
         <div id="game-hud">
             SQUAD: <span id="sq-val">1</span> | TANGGO: <span id="en-val">0</span><br>
@@ -105,7 +106,6 @@
     </div>
 
     <script>
-        // --- FIREBASE CONFIG (NASA'S) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDntJLnQdUrNEREFvJyuhxKHKWXAs0slTY",
             authDomain: "cqb-game-multiplayer.firebaseapp.com",
@@ -123,7 +123,6 @@
         const ctx = canvas.getContext('2d');
         const TILE = 64;
 
-        // --- GAME STATE ---
         let playing = false, isWin = false, isDead = false, isMultiplayer = false;
         let myId = 'solo', myName = 'OP-1', isHost = true;
         let players = {}, conns = [];
@@ -131,7 +130,6 @@
         let moveState = { up:false, down:false, left:false, right:false };
         const keys = {};
 
-        // MAP: 1=Wall, 2=Door, 3=Key, 4=LockedDoor
         const world = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
             [1,0,0,0,1,0,0,0,0,0,3,0,0,0,1],
@@ -142,17 +140,12 @@
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
-        let enemies = [
-            {x: 420, y: 150, hp: 100, patDir: 1, base: 150},
-            {x: 750, y: 300, hp: 100, patDir: 1, base: 300},
-            {x: 850, y: 150, hp: 100, patDir: -1, base: 150}
-        ];
+        let enemies = [];
 
-        // --- AUDIO SYSTEM ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
         function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
-        
+
         function playShotgun() {
             if (!audioCtx) return; const now = audioCtx.currentTime;
             const bufferSize = audioCtx.sampleRate * 0.12; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -163,7 +156,6 @@
             noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noise.start(now);
         }
 
-        // --- NETWORK / MENU LOGIC ---
         peer.on('open', id => { document.getElementById('p-id').innerText = id.substring(0,6); });
 
         db.ref('rooms').on('value', snap => {
@@ -177,8 +169,17 @@
             });
         });
 
-        function startSolo() { isMultiplayer = false; myId = 'solo'; initGame(); }
-        
+        function startSolo() { 
+            isMultiplayer = false; 
+            myId = 'solo'; 
+            enemies = [
+                {x: 420, y: 150, hp: 100, patDir: 1, base: 150},
+                {x: 750, y: 300, hp: 100, patDir: 1, base: 300},
+                {x: 850, y: 150, hp: 100, patDir: -1, base: 150}
+            ];
+            initGame(); 
+        }
+
         function openMultiplayerLobby() {
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('sidebar').style.display = 'flex';
@@ -216,15 +217,12 @@
                 }, 30);
             });
             c.on('data', d => {
-                if(d.type === 'sync') {
-                    if(!players[d.id]) players[d.id] = { color: '#d32f2f' };
-                    Object.assign(players[d.id], d);
-                }
+                if(d.type === 'sync') { if(!players[d.id]) players[d.id] = { color: '#d32f2f' }; Object.assign(players[d.id], d); }
                 if(d.type === 'fire') { bullets.push({x:d.x, y:d.y, angle:d.a, s:18}); playShotgun(); }
                 if(d.type === 'grenade') grenades.push({x:d.x, y:d.y, angle:d.a, s:6, timer:60, exploded:false});
                 if(d.type === 'mapUpdate') world[d.y][d.x] = d.val;
-                if(d.type === 'enemyHit') enemies[d.idx].hp -= d.dmg;
-                if(isHost) conns.forEach(o => { if(o !== c) o.send(d); }); // Relay
+                if(d.type === 'enemyHit') { if(enemies[d.idx]) enemies[d.idx].hp -= d.dmg; }
+                if(isHost) conns.forEach(o => { if(o !== c) o.send(d); });
             });
         }
 
@@ -232,15 +230,17 @@
             initAudio();
             document.getElementById('mp-lobby').style.display = 'none';
             document.getElementById('main-menu').style.display = 'none';
-            if(isMultiplayer) document.getElementById('sidebar').style.display = 'none';
+            document.getElementById('sidebar').style.display = 'none';
             document.getElementById('game-hud').style.display = 'block';
-            
-            // Setup Player
+            document.getElementById('quit-btn').style.display = 'block';
+
+            if(isMultiplayer) enemies = []; 
+
             players[myId] = { x: 96, y: 96, angle: 0, hp: 100, speed: 4, hasKey: false, grenades: 3, name: myName, color: '#1976d2' };
-            playing = true; resize(); loop();
+            playing = true; resize(); 
+            if(!window.loopActive) { loop(); window.loopActive = true; }
         }
 
-        // --- CONTROLS ---
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
@@ -253,7 +253,6 @@
         });
         window.addEventListener('mousedown', e => { if(playing && !isDead && !('ontouchstart' in window)) shoot(); });
 
-        // D-Pad Touch
         ['up','down','left','right'].forEach(d => {
             const el = document.getElementById(d);
             el.addEventListener('touchstart', (e) => { e.preventDefault(); moveState[d] = true; });
@@ -262,8 +261,7 @@
         document.getElementById('fire-btn').addEventListener('touchstart', e => { e.preventDefault(); if(playing && !isDead) shoot(); });
         document.getElementById('grenade-btn').addEventListener('touchstart', e => { e.preventDefault(); if(playing && !isDead) throwGrenade(); });
         document.getElementById('door-btn').addEventListener('touchstart', e => { e.preventDefault(); interact(); });
-        
-        // Touch Aiming (Area Kosong)
+
         canvas.addEventListener('touchmove', e => {
             e.preventDefault();
             if(playing && players[myId]) {
@@ -272,7 +270,6 @@
             }
         });
 
-        // --- ACTIONS ---
         function shoot() {
             const p = players[myId];
             bullets.push({x:p.x, y:p.y, angle:p.angle, s:18}); playShotgun();
@@ -286,111 +283,78 @@
                 if(isMultiplayer) conns.forEach(c => c.send({type:'grenade', x:p.x, y:p.y, a:p.angle}));
             }
         }
-        
+
         function interact() {
             const p = players[myId];
             const gx = Math.floor(p.x/TILE), gy = Math.floor(p.y/TILE);
-            if (!world[gy]) return;
             [[-1,0],[1,0],[0,-1],[0,1]].forEach(d => {
                 let tx = gx+d[0], ty = gy+d[1];
-                if(world[ty]) {
-                    if(world[ty][tx] === 2 || (world[ty][tx] === 4 && p.hasKey)) {
-                        world[ty][tx] = 0; // Buka pintu
-                        if(isMultiplayer) conns.forEach(c => c.send({type:'mapUpdate', x:tx, y:ty, val:0}));
-                    }
+                if(world[ty] && (world[ty][tx] === 2 || (world[ty][tx] === 4 && p.hasKey))) {
+                    world[ty][tx] = 0;
+                    if(isMultiplayer) conns.forEach(c => c.send({type:'mapUpdate', x:tx, y:ty, val:0}));
                 }
             });
         }
 
         function hitWall(nx, ny) {
             const gx = Math.floor(nx/TILE), gy = Math.floor(ny/TILE);
-            if (!world[gy]) return true;
-            return world[gy][gx] === 1 || world[gy][gx] === 2 || world[gy][gx] === 4;
+            return !world[gy] || world[gy][gx] === 1 || world[gy][gx] === 2 || world[gy][gx] === 4;
         }
 
-        // --- MAIN LOOP ---
         function update() {
             if(!playing || isWin || isDead) return;
             const p = players[myId];
 
-            // MOVE LOCAL PLAYER
             let dx=0, dy=0;
-            if(keys['w'] || moveState.up) { dy -= p.speed; if('ontouchstart' in window) p.angle = -Math.PI/2; }
-            if(keys['s'] || moveState.down) { dy += p.speed; if('ontouchstart' in window) p.angle = Math.PI/2; }
-            if(keys['a'] || moveState.left) { dx -= p.speed; if('ontouchstart' in window) p.angle = Math.PI; }
-            if(keys['d'] || moveState.right) { dx += p.speed; if('ontouchstart' in window) p.angle = 0; }
+            if(keys['w'] || moveState.up) dy -= p.speed;
+            if(keys['s'] || moveState.down) dy += p.speed;
+            if(keys['a'] || moveState.left) dx -= p.speed;
+            if(keys['d'] || moveState.right) dx += p.speed;
             if(!hitWall(p.x+dx, p.y)) p.x += dx;
             if(!hitWall(p.x, p.y+dy)) p.y += dy;
 
             const gx = Math.floor(p.x/TILE), gy = Math.floor(p.y/TILE);
-            
-            // AMBIL KEYCARD
             if(world[gy] && world[gy][gx] === 3) { 
                 p.hasKey = true; world[gy][gx] = 0;
                 if(isMultiplayer) conns.forEach(c => c.send({type:'mapUpdate', x:gx, y:gy, val:0}));
             }
-            
-            // CEK PINTU DEKAT
+
             let doorNearby = false;
             if (world[gy]) { [[-1,0],[1,0],[0,-1],[0,1]].forEach(d => { let val = world[gy+d[1]] ? world[gy+d[1]][gx+d[0]] : 0; if(val === 2 || val === 4) doorNearby = true; }); }
             document.getElementById('door-btn').style.display = doorNearby ? 'flex' : 'none';
 
-            // MUSUH (AI Berjalan di semua client agar sinkron)
             enemies.forEach((en, idx) => {
                 if(en.hp <= 0) return;
                 let nextY = en.y + en.patDir * 1.5;
                 if(!hitWall(en.x, nextY + (en.patDir * 20))) { en.y = nextY; if(Math.abs(en.y - en.base) > 100) en.patDir *= -1; } else { en.patDir *= -1; }
-                
-                // Cari player terdekat untuk ditembak
                 let target = null, minDist = 300;
-                Object.values(players).forEach(pl => {
-                    let d = Math.hypot(pl.x-en.x, pl.y-en.y);
-                    if(d < minDist && pl.hp > 0) { target = pl; minDist = d; }
-                });
-
-                if(target && Math.random() < 0.02) {
-                    enemyBullets.push({x:en.x, y:en.y, angle: Math.atan2(target.y-en.y, target.x-en.x), s:7});
-                    playShotgun();
-                }
+                Object.values(players).forEach(pl => { let d = Math.hypot(pl.x-en.x, pl.y-en.y); if(d < minDist && pl.hp > 0) { target = pl; minDist = d; } });
+                if(target && Math.random() < 0.02) { enemyBullets.push({x:en.x, y:en.y, angle: Math.atan2(target.y-en.y, target.x-en.x), s:7}); playShotgun(); }
             });
 
-            // BULLETS
             bullets.forEach((b, i) => {
                 b.x += Math.cos(b.angle)*b.s; b.y += Math.sin(b.angle)*b.s;
                 if(hitWall(b.x, b.y)) { bullets.splice(i,1); return; }
-                enemies.forEach((en, idx) => { 
-                    if(en.hp > 0 && Math.hypot(en.x-b.x, en.y-b.y) < 25) { 
-                        en.hp -= 100; bullets.splice(i,1); 
-                        if(isMultiplayer) conns.forEach(c => c.send({type:'enemyHit', idx:idx, dmg:100}));
-                    } 
-                });
+                enemies.forEach((en, idx) => { if(en.hp > 0 && Math.hypot(en.x-b.x, en.y-b.y) < 25) { en.hp -= 100; bullets.splice(i,1); if(isMultiplayer) conns.forEach(c => c.send({type:'enemyHit', idx:idx, dmg:100})); } });
             });
 
-            // ENEMY BULLETS (Hanya kena player lokal)
             enemyBullets.forEach((eb, i) => {
                 eb.x += Math.cos(eb.angle)*eb.s; eb.y += Math.sin(eb.angle)*eb.s;
                 if(hitWall(eb.x, eb.y)) { enemyBullets.splice(i,1); return; }
                 if(Math.hypot(p.x-eb.x, p.y-eb.y) < 18) { p.hp -= 20; enemyBullets.splice(i,1); }
             });
 
-            // GRENADES
             grenades.forEach((g, i) => {
                 if(!g.exploded) {
                     g.x += Math.cos(g.angle)*g.s; g.y += Math.sin(g.angle)*g.s; g.s *= 0.93; g.timer--;
                     if(g.timer <= 0) {
                         g.exploded = true;
-                        enemies.forEach((en, idx) => { 
-                            if(en.hp>0 && Math.hypot(en.x-g.x, en.y-g.y) < 160) {
-                                en.hp -= 100;
-                                if(isMultiplayer) conns.forEach(c => c.send({type:'enemyHit', idx:idx, dmg:100}));
-                            }
-                        });
+                        enemies.forEach((en, idx) => { if(en.hp>0 && Math.hypot(en.x-g.x, en.y-g.y) < 160) { en.hp -= 100; if(isMultiplayer) conns.forEach(c => c.send({type:'enemyHit', idx:idx, dmg:100})); } });
                         setTimeout(() => { if(grenades.indexOf(g) > -1) grenades.splice(grenades.indexOf(g),1); }, 500);
                     }
                 }
             });
 
-            // HUD & STATUS
             let aliveEnemies = enemies.filter(e => e.hp > 0).length;
             document.getElementById('hp-val').innerText = p.hp;
             document.getElementById('en-val').innerText = aliveEnemies;
@@ -398,11 +362,10 @@
             document.getElementById('key-val').innerText = p.hasKey ? "FOUND" : "MISSING";
             document.getElementById('sq-val').innerText = Object.keys(players).length;
 
-            if(aliveEnemies === 0 && !isWin) { isWin = true; setTimeout(() => { document.getElementById('win-screen').style.display = 'flex'; }, 400); }
+            if(!isMultiplayer && aliveEnemies === 0 && !isWin) { isWin = true; setTimeout(() => { document.getElementById('win-screen').style.display = 'flex'; }, 400); }
             if(p.hp <= 0 && !isDead) { isDead = true; setTimeout(() => { document.getElementById('death-screen').style.display = 'flex'; }, 400); }
         }
 
-        // --- RENDER ---
         function drawHumanoid(x, y, angle, bodyCol, isEnemy, name) {
             ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
             ctx.fillStyle = bodyCol;
@@ -410,8 +373,7 @@
             ctx.beginPath(); ctx.ellipse(12, 10, 8, 14, -Math.PI / 4, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = isEnemy ? '#a00' : '#111';
             ctx.beginPath(); ctx.ellipse(0, 0, 15, 22, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = isEnemy ? '#600' : '#222';
-            ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = isEnemy ? '#600' : '#222'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = isEnemy ? '#ff0' : '#0ff'; ctx.fillRect(-6, -6, 12, 3);
             ctx.fillStyle = '#000'; ctx.fillRect(10, -5, 25, 6); ctx.fillRect(32, -4, 10, 4); 
             ctx.restore();
@@ -420,62 +382,34 @@
 
         function draw() {
             if(!playing) return;
-            
-            // FLOOR GRID (Persis Solo Mission / Multiplayer)
             ctx.fillStyle = '#050505'; ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 1;
+            ctx.strokeStyle = '#0a0a0a';
             for(let i=0; i<canvas.width; i+=TILE) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
             for(let i=0; i<canvas.height; i+=TILE) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); ctx.stroke(); }
 
-            // MAP TEXTURES
             for(let r=0; r<world.length; r++) {
                 for(let c=0; c<world[r].length; c++) {
                     const val = world[r][c];
-                    if(val === 1) { // Concrete Wall
-                        ctx.fillStyle = '#151515'; ctx.fillRect(c*TILE, r*TILE, TILE, TILE);
-                        ctx.strokeStyle = '#0f0'; ctx.lineWidth = 0.3; ctx.strokeRect(c*TILE, r*TILE, TILE, TILE);
-                        ctx.beginPath(); ctx.moveTo(c*TILE, r*TILE+32); ctx.lineTo(c*TILE+TILE, r*TILE+32); ctx.stroke();
-                    }
-                    else if(val === 2) { // Normal Door
-                        ctx.fillStyle = '#5d4037'; ctx.fillRect(c*TILE+4, r*TILE+4, TILE-8, TILE-8);
-                        ctx.fillStyle='#fff'; ctx.font='10px Arial'; ctx.fillText("DOOR", c*TILE+18, r*TILE+35);
-                    }
-                    else if(val === 4) { // Locked Door
-                        ctx.fillStyle = '#0d47a1'; ctx.fillRect(c*TILE+4, r*TILE+4, TILE-8, TILE-8);
-                        ctx.fillStyle='#fff'; ctx.font='10px Arial'; ctx.fillText("LOCKED", c*TILE+12, r*TILE+35);
-                    }
-                    else if(val === 3) { // Keycard
-                        ctx.fillStyle = '#ff0'; ctx.fillRect(c*TILE+20, r*TILE+25, 24, 14);
-                    }
+                    if(val === 1) { ctx.fillStyle = '#151515'; ctx.fillRect(c*TILE, r*TILE, TILE, TILE); ctx.strokeStyle = '#0f0'; ctx.lineWidth = 0.3; ctx.strokeRect(c*TILE, r*TILE, TILE, TILE); }
+                    else if(val === 2) { ctx.fillStyle = '#5d4037'; ctx.fillRect(c*TILE+4, r*TILE+4, TILE-8, TILE-8); }
+                    else if(val === 4) { ctx.fillStyle = '#0d47a1'; ctx.fillRect(c*TILE+4, r*TILE+4, TILE-8, TILE-8); }
+                    else if(val === 3) { ctx.fillStyle = '#ff0'; ctx.fillRect(c*TILE+20, r*TILE+25, 24, 14); }
                 }
             }
 
-            // ENTITIES
             enemies.forEach(en => { if(en.hp > 0) drawHumanoid(en.x, en.y, Math.atan2(players[myId].y-en.y, players[myId].x-en.x), '#c62828', true, "TANGGO"); });
-            
-            Object.keys(players).forEach(id => {
-                const p = players[id];
-                if(p && p.hp > 0) drawHumanoid(p.x, p.y, p.angle, p.color || '#1976d2', false, p.name);
-            });
+            Object.keys(players).forEach(id => { const p = players[id]; if(p && p.hp > 0) drawHumanoid(p.x, p.y, p.angle, p.color || '#1976d2', false, p.name); });
 
-            // SENTER & LIGHTING (Pekat 0.95)
             const p = players[myId];
             const off = document.createElement('canvas'); off.width = canvas.width; off.height = canvas.height;
             const octx = off.getContext('2d'); octx.fillStyle = 'rgba(0,0,0,0.95)'; octx.fillRect(0,0,canvas.width,canvas.height);
             octx.globalCompositeOperation = 'destination-out';
-            
-            // Senter utama
             const grad = octx.createRadialGradient(p.x, p.y, 10, p.x, p.y, 400);
             grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
-            octx.fillStyle = grad; octx.beginPath(); octx.moveTo(p.x, p.y);
-            octx.arc(p.x, p.y, 450, p.angle - 0.7, p.angle + 0.7); octx.fill();
-            
-            // Ambient glow badan pemain
+            octx.fillStyle = grad; octx.beginPath(); octx.moveTo(p.x, p.y); octx.arc(p.x, p.y, 450, p.angle - 0.7, p.angle + 0.7); octx.fill();
             const ambient = octx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 75);
             ambient.addColorStop(0, 'rgba(255,255,255,1)'); ambient.addColorStop(1, 'rgba(255,255,255,0)');
             octx.fillStyle = ambient; octx.beginPath(); octx.arc(p.x, p.y, 75, 0, Math.PI*2); octx.fill();
-            
-            // Cahaya Granat
             grenades.forEach(g => {
                 const gGrad = octx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.exploded ? 350 : 80);
                 gGrad.addColorStop(0, g.exploded ? 'rgba(255,255,255,1)' : 'rgba(255,165,0,0.8)');
@@ -484,7 +418,6 @@
             });
             ctx.drawImage(off, 0, 0);
 
-            // DRAW BULLETS
             ctx.fillStyle = '#ff0'; bullets.forEach(b => ctx.fillRect(b.x-3, b.y-3, 7, 7));
             ctx.fillStyle = '#f00'; enemyBullets.forEach(b => ctx.fillRect(b.x-3, b.y-3, 7, 7));
         }
